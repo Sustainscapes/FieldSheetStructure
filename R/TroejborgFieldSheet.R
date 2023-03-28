@@ -29,7 +29,7 @@ read_fieldsheet <- function(path, SheetNames, type = NULL, parallel = FALSE, cor
 #' @param parallel logical, whether to run the function in parallel
 #' @param verbose logical, whether to write messages while the function runs, defaults to FALSE
 #' @param cores integer, number of cores to use if parallel = TRUE
-#' @return dataframe, a dataframe containing the data from the excel sheet
+#' @return dataframe, a dataframe containing the data from the excel sheet. Plotcount: The number of plots the species occurs. Countspecies: Number of species per plot.
 #' @importFrom readxl read_excel
 #' @importFrom dplyr select
 #' @importFrom dplyr count
@@ -43,7 +43,6 @@ read_fieldsheet <- function(path, SheetNames, type = NULL, parallel = FALSE, cor
 
 
 TrojborgFieldSheet <- function(path, SheetNames, parallel = FALSE, cores = NULL, verbose = TRUE){
-  #SheetNames <- excel_sheets(path)
   Species <- NULL
   lengthLoop <- length(SheetNames)
   if(!parallel){
@@ -247,7 +246,6 @@ TrojborgFieldSheet <- function(path, SheetNames, parallel = FALSE, cores = NULL,
           if (PinpointData[[k, 1]] == TrojborgDT[l, 5]) {
             PinpointCount <- PinpointData[k, 7:22]
             if (!is.character(PinpointCount) == TRUE) {
-              print("count error")
               PinpointCount <- lapply(PinpointCount, as.character)
             }
             PinpointCount[is.na(PinpointCount)] <- "0"
@@ -353,11 +351,17 @@ TrojborgFieldSheet <- function(path, SheetNames, parallel = FALSE, cores = NULL,
       names(extraData)[21] <- "vegetationshoejde vest"
       TrojborgDT <- cbind(TrojborgDT, extraData[!names(extraData) %in%
                                             names(TrojborgDT)])
+
+      TrojborgDT <- distinct(TrojborgDT, .keep_all = TRUE)
+
       countSpecies <- matrix(count(unique(TrojborgDT[5])), ncol = 1,
                              nrow = nrow(TrojborgDT))
+
       CountSpeciesData <- data.frame(countSpecies)
+
       TrojborgDT <- cbind(TrojborgDT, CountSpeciesData[!names(CountSpeciesData) %in%
                                                    names(TrojborgDT)])
+
       TrojborgDT$Species <- stringr::str_replace_all(TrojborgDT$Species, "\\u00e5", "aa")
       TrojborgDT$Species <- stringr::str_replace_all(TrojborgDT$Species, "\\u00f8", "oe")
       TrojborgDT$Species <- stringr::str_replace_all(TrojborgDT$Species, "\\u00e6", "ae")
@@ -670,7 +674,7 @@ TrojborgFieldSheet <- function(path, SheetNames, parallel = FALSE, cores = NULL,
   speciesoccured1 = speciesoccured[speciesoccured$`Vegetationsanalyse - pinpoint` >
                                      0, ]
   new <- dplyr::filter(new, !is.na(Species))
-  plotCount <- count(new[1], new[5])
+  plotCount <- count(new[1],new[5])
   new$PlotCount <- as.integer(0)
 
   for (o in 1:nrow(new)) {
@@ -683,6 +687,7 @@ TrojborgFieldSheet <- function(path, SheetNames, parallel = FALSE, cores = NULL,
   return(new)
 }
 
-SheetNames = excel_sheets("/Users/heidilunde/Documents/SustainScapes/DataStructuring/FieldSheetsTrojborg_df.xlsm")
+SheetNames = excel_sheets("/Users/heidilunde/Documents/SustainScapes/FieldSheetStructure/FieldSheets/FieldSheetsTrojborg_QC copy.xlsm")
 SheetNames = SheetNames[1:88]
-tester <- TrojborgFieldSheet("/Users/heidilunde/Documents/SustainScapes/DataStructuring/FieldSheetsTrojborg_df.xlsm", SheetNames)
+SheetNames = SheetNames[-72]
+tester <- TrojborgFieldSheet("/Users/heidilunde/Documents/SustainScapes/FieldSheetStructure/FieldSheets/FieldSheetsTrojborg_QC copy.xlsm", SheetNames)
