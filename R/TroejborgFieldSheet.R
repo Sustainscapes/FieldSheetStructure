@@ -47,6 +47,10 @@ TrojborgFieldSheet <- function(path, SheetNames, parallel = FALSE, cores = NULL,
   lengthLoop <- length(SheetNames)
   if(!parallel){
     for (i in 1:lengthLoop) {
+      if (SheetNames[i]=="T_E_C2_037_A"){
+        print(paste("Sheetname",SheetNames[i], "has a problem with the date column. The code continues without this sheet"))
+        next
+      }
       if(verbose){
         message(paste("starting", SheetNames[i]))
       }
@@ -282,12 +286,19 @@ TrojborgFieldSheet <- function(path, SheetNames, parallel = FALSE, cores = NULL,
                                                       "5m", "15m", "Type", "Count Pinpoint"))
 
       PinpointDF <- merge(x = df, y = PinpointData, by = NULL)
+
+
+
       if (SheetNames[i]=="T_E_C2_037_A"){
-        df$Dato <- PlotDateInventorLocation[[4]]
-      } else{
+        df$Dato <- as.character(PlotDateInventorLocation[[4]])
+        df$Dato <- readr::parse_date(df$Dato)
+        } else{
         df$Dato <- as.Date(df$Dato, format = "%Y.%m.%d")
       }
-      #PinpointDF$Dato <- as.character(PinpointDF$Dato)
+
+
+
+
       names(PinpointDF) <- names(TrojborgDT)
       PinpointDF <- PinpointDF[1:9]
       TrojborgDT <- rbind(TrojborgDT, PinpointDF)
@@ -296,11 +307,15 @@ TrojborgFieldSheet <- function(path, SheetNames, parallel = FALSE, cores = NULL,
       }
       Extra1 <- read_excel(path, sheet = SheetNames[15], range = "A01:AK09",
                            col_names = F)
+
       Extra <- select(AllData, 1:37)
+
       Extra <- Extra[1:9, ]
+
       if (is.na(Extra[1, 33]) == TRUE) {
         Extra <- Extra[-1, ]
       }
+
       habitattype <- select(Extra, 33:37)
       kronedaekke <- select(Extra, 5:7)
       kronedaekke <- kronedaekke[3:8, ]
@@ -352,15 +367,18 @@ TrojborgFieldSheet <- function(path, SheetNames, parallel = FALSE, cores = NULL,
       TrojborgDT <- cbind(TrojborgDT, extraData[!names(extraData) %in%
                                             names(TrojborgDT)])
 
+
       TrojborgDT <- distinct(TrojborgDT, .keep_all = TRUE)
 
-      countSpecies <- matrix(count(unique(TrojborgDT[5])), ncol = 1,
-                             nrow = nrow(TrojborgDT))
+      sortSpecies <- TrojborgDT[TrojborgDT$Type == 'Vegetationsanalyse - pinpoint',]
+      countSpecies <- length(unique(sortSpecies$Species))
+
 
       CountSpeciesData <- data.frame(countSpecies)
 
       TrojborgDT <- cbind(TrojborgDT, CountSpeciesData[!names(CountSpeciesData) %in%
                                                    names(TrojborgDT)])
+
 
       TrojborgDT$Species <- stringr::str_replace_all(TrojborgDT$Species, "\\u00e5", "aa")
       TrojborgDT$Species <- stringr::str_replace_all(TrojborgDT$Species, "\\u00f8", "oe")
@@ -689,5 +707,7 @@ TrojborgFieldSheet <- function(path, SheetNames, parallel = FALSE, cores = NULL,
 
 SheetNames = excel_sheets("/Users/heidilunde/Documents/SustainScapes/FieldSheetStructure/FieldSheets/FieldSheetsTrojborg_QC copy.xlsm")
 SheetNames = SheetNames[1:88]
-SheetNames = SheetNames[-72]
 tester <- TrojborgFieldSheet("/Users/heidilunde/Documents/SustainScapes/FieldSheetStructure/FieldSheets/FieldSheetsTrojborg_QC copy.xlsm", SheetNames)
+
+
+
