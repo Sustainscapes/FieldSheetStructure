@@ -6,7 +6,7 @@
 #' @param parallel logical, whether to run the function in parallel
 #' @param verbose logical, whether to write messages while the function runs, defaults to FALSE
 #' @param cores integer, number of cores to use if parallel = TRUE
-#' @param type which type of fieldsheet you are using options are Husby or Sinks
+#' @param type which type of fieldsheet you are using options are Husby, Sinks or Trojborg
 #' @return dataframe, a dataframe containing the data from the excel sheet
 #' @export
 
@@ -703,7 +703,7 @@ TrojborgFieldSheet <- function(path, SheetNames, parallel = FALSE, cores = NULL,
 SheetNames = excel_sheets("/Users/heidilunde/Documents/SustainScapes/FieldSheetStructure/FieldSheets/FieldSheetsTrojborg_QC copy.xlsm")
 
 #Choosing only the sheets with data
-SheetNames = SheetNames[1:88]
+SheetNames = SheetNames[grep("T_", SheetNames)]
 
 #Running the function
 tester <- TrojborgFieldSheet("/Users/heidilunde/Documents/SustainScapes/FieldSheetStructure/FieldSheets/FieldSheetsTrojborg_QC copy.xlsm", SheetNames)
