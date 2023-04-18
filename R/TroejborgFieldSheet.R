@@ -15,6 +15,8 @@ read_fieldsheet <- function(path, SheetNames, type = NULL, parallel = FALSE, cor
     Result <- HusbyFieldSheet(path, SheetNames, parallel = FALSE, cores = NULL, verbose = TRUE)
   } else if(type == "Sinks"){
     Result <- SinksFieldSheet(path, SheetNames, parallel = FALSE, cores = NULL, verbose = TRUE)
+  } else if(type == "Trojborg"){
+    Result <- TrojborgFieldSheet(path, SheetNames, parallel = FALSE, cores = NULL, verbose = TRUE)
   }
   return(Result)
 }
@@ -29,7 +31,7 @@ read_fieldsheet <- function(path, SheetNames, type = NULL, parallel = FALSE, cor
 #' @param parallel logical, whether to run the function in parallel
 #' @param verbose logical, whether to write messages while the function runs, defaults to FALSE
 #' @param cores integer, number of cores to use if parallel = TRUE
-#' @return dataframe, a dataframe containing the data from the excel sheet. Plotcount: The number of plots the species occurs. Countspecies: Number of species per plot.
+#' @return dataframe, a dataframe containing the data from the excel sheet. Countspecies: Number of species per plot.
 #' @importFrom readxl read_excel
 #' @importFrom dplyr select
 #' @importFrom dplyr count
@@ -692,22 +694,23 @@ TrojborgFieldSheet <- function(path, SheetNames, parallel = FALSE, cores = NULL,
   speciesoccured1 = speciesoccured[speciesoccured$`Vegetationsanalyse - pinpoint` >
                                      0, ]
   new <- dplyr::filter(new, !is.na(Species))
-  plotCount <- count(new[1],new[5])
-  new$PlotCount <- as.integer(0)
 
-  for (o in 1:nrow(new)) {
-    if (any(new[o, 5] == plotCount) == TRUE) {
-      z <- which(plotCount == new[o, 5])
-      new[o, 32] <- plotCount[z, 2]
-    }
-  }
 
   return(new)
 }
 
+#Getting the sheet names from fieldsheet
 SheetNames = excel_sheets("/Users/heidilunde/Documents/SustainScapes/FieldSheetStructure/FieldSheets/FieldSheetsTrojborg_QC copy.xlsm")
+
+#Choosing only the sheets with data
 SheetNames = SheetNames[1:88]
+
+#Running the function
 tester <- TrojborgFieldSheet("/Users/heidilunde/Documents/SustainScapes/FieldSheetStructure/FieldSheets/FieldSheetsTrojborg_QC copy.xlsm", SheetNames)
 
-#check
+#Uncomment if the dataframe should be written as csv
+#write.csv(df, "/Users/heidilunde/Documents/SustainScapes/FieldSheetStructure/Dataframes/Trojborg.csv", row.names=FALSE)
+
+
+
 
